@@ -36,6 +36,8 @@ Info on AVR power optimization: http://www.gammon.com.au/power
                   +--------+
 ```
 
+![Project Blinky built on a breadboard](project_blinky_breadboard.jpg)
+
 ### Compiling/Flashing:
 
 Project Blinky is designed to be compiled and flashed onto the
