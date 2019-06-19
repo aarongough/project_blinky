@@ -26,10 +26,10 @@ Expected battery life:
 
                    ATTiny85
                   +---\/---+
-             N/C  |1*     8|  VCC
+          Led4 -  |1*     8|  VCC
           Led2 +  |2      7|  Led1 +
           Led2 -  |3      6|  Led1 -
-             GND  |4      5|  N/C
+             GND  |4      5|  Led3 +
                   +--------+
 
  */
@@ -39,6 +39,7 @@ Expected battery life:
 
 const int ledPin1 = 3; // Package pin 7
 const int ledPin2 = 2; // Package pin 2
+const int ledPin3 = 0; // Package pin 5
 
 int loop_count = 0;
 
@@ -57,21 +58,14 @@ void setup() {
 // Main loop happens once every 32ms when
 // watchdog interrupt wakes up the CPU
 void loop() {
-  wdt_disable();
-  loop_count++;
+  leds_on();
   
-  switch(loop_count) {
-    case 0: leds_on();
-    case 1: leds_off();
-    case 15: leds_on();
-    case 16: leds_off();
-    case 30: leds_on();
-    case 31: leds_off();
-    case 200: loop_count = 0;
-  }
+  enable_watchdog_32ms();
+  sleep_until_watchdog_timeout();
   
-  enable_watchdog();
-  disable_adc();
+  leds_off();
+  
+  enable_watchdog_2s();
   sleep_until_watchdog_timeout();
 }
 
@@ -85,17 +79,20 @@ void leds_off() {
   digitalWrite(ledPin2, LOW);
 }
 
-void enable_watchdog() {
+void enable_watchdog_32ms() {
   // set WDIE(watchdog interrupt enable), and 32ms delay
   WDTCR = bit (WDIE) | bit (WDP0);
   wdt_reset();
 }
 
-void disable_adc() {
-  ADCSRA = 0;
+void enable_watchdog_2s() {
+  // set WDIE(watchdog interrupt enable), and 2s delay
+  WDTCR = bit (WDIE) | bit (WDP2) | bit (WDP1) | bit (WDP0);
+  wdt_reset();
 }
 
 void sleep_until_watchdog_timeout() {
+  ADCSRA = 0; // Disable ADC
   set_sleep_mode (SLEEP_MODE_PWR_DOWN);  
   sleep_enable();
   sleep_bod_disable();
